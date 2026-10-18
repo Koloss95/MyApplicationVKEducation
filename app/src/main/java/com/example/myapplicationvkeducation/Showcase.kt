@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun Showcase(
     apps: List<AppInfo>,
-    onAppClick: () -> Unit,
+    onAppClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     require(apps.size == 9) {
@@ -51,7 +51,7 @@ fun Showcase(
                 for (app in pages[pageIndex]) {
                     AppCard(
                         app = app,
-                        onClick = onAppClick
+                        onClick = { onAppClick(app.id) }
                     )
                 }
             }

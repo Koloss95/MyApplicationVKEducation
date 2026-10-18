@@ -22,14 +22,70 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.myapplicationvkeducation.ui.theme.MyApplicationVKEducationTheme
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 
 
 @Composable
-fun AppsScreen(onAppClick: (Int) -> Unit = {}
+fun AppsScreen(
+    onAppClick: (Int) -> Unit = {},
+    viewModel: AppsViewModel = viewModel()
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    LaunchedEffect(viewModel, lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(
+            Lifecycle.State.STARTED
+        ) {
+            viewModel.events.collect { event ->
+                when (event) {
+                    is AppsEvent.ShowSnackbar -> {
+                        snackbarHostState.showSnackbar(
+                            message = event.message
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    AppsContent(
+        uiState = uiState,
+        onAppClick = onAppClick,
+        onLogoClick = viewModel::onLogoClick,
+        snackbarHostState = snackbarHostState
+    )
+}
+
+@Composable
+private fun AppsContent(
+    uiState: AppsUiState,
+    onAppClick: (Int) -> Unit = {},
+    onLogoClick: () -> Unit = {},
+    snackbarHostState: SnackbarHostState = remember {
+        SnackbarHostState()
+    }
 ) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        topBar = { AppsToolbar() },
+        topBar = {
+            AppsToolbar(onLogoClick = onLogoClick)
+        },
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        }
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
@@ -39,7 +95,7 @@ fun AppsScreen(onAppClick: (Int) -> Unit = {}
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(
-                items = sampleApps,
+                items = uiState.apps,
                 key = { app -> app.id }
             ) { app ->
                 AppCard(
@@ -52,7 +108,9 @@ fun AppsScreen(onAppClick: (Int) -> Unit = {}
 }
 
 @Composable
-private fun AppsToolbar() {
+private fun AppsToolbar(
+    onLogoClick: () -> Unit
+) {
     Surface(
         color = MaterialTheme.colorScheme.primary,
         contentColor = MaterialTheme.colorScheme.onPrimary
@@ -65,14 +123,15 @@ private fun AppsToolbar() {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Image(
-                painter = painterResource(
-                    R.drawable.ic_launcher_foreground
-                ),
-                contentDescription = "Иконка приложения",
-                modifier = Modifier.size(40.dp)
-            )
-
+            IconButton(onClick = onLogoClick) {
+                Image(
+                    painter = painterResource(
+                        R.drawable.ic_launcher_foreground
+                    ),
+                    contentDescription = "О каталоге приложений",
+                    modifier = Modifier.size(40.dp)
+                )
+            }
             Text(
                 text = "Каталог приложений",
                 style = MaterialTheme.typography.titleLarge
@@ -85,6 +144,8 @@ private fun AppsToolbar() {
 @Composable
 private fun AppsScreenPreview() {
     MyApplicationVKEducationTheme {
-        AppsScreen()
+        AppsContent(
+            uiState = AppsUiState(apps = sampleApps)
+        )
     }
 }

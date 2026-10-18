@@ -55,6 +55,13 @@ fun RootNavHost() {
                 appId = destination.appId,
                 onBackClick = {
                     navController.popBackStack()
+                },
+                onShowcaseAppClick = { selectedAppId ->
+                    if (selectedAppId != destination.appId) {
+                        navController.navigate(
+                            AppDetailsDestination(appId = selectedAppId)
+                        )
+                    }
                 }
             )
         }
@@ -65,7 +72,8 @@ fun RootNavHost() {
 @Composable
 private fun AppDetailsPlaceholder(
     appId: Int,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onShowcaseAppClick: (Int) -> Unit
 ) {
     val app = findAppById(appId)
     val context = LocalContext.current
@@ -178,7 +186,7 @@ private fun AppDetailsPlaceholder(
 
             Showcase(
                 apps = sampleApps,
-                onAppClick = onBackClick
+                onAppClick = onShowcaseAppClick
             )
         }
     }
