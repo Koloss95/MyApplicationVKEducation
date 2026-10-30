@@ -1,4 +1,4 @@
-package com.example.myapplicationvkeducation
+package com.example.myapplicationvkeducation.presentation.details
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement

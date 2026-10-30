@@ -1,9 +1,9 @@
-package com.example.myapplicationvkeducation
+package com.example.myapplicationvkeducation.presentation.details
 
+import com.example.myapplicationvkeducation.domain.model.AppInfo
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.MaterialTheme
@@ -11,6 +11,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.myapplicationvkeducation.presentation.components.AppCard
+
 
 @Composable
 fun Showcase(

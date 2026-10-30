@@ -1,4 +1,4 @@
-package com.example.myapplicationvkeducation
+package com.example.myapplicationvkeducation.presentation.catalog
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -21,10 +21,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.myapplicationvkeducation.ui.theme.MyApplicationVKEducationTheme
+import com.example.myapplicationvkeducation.presentation.components.AppCard
+import com.example.myapplicationvkeducation.R
+import com.example.myapplicationvkeducation.domain.model.AppInfo
+import com.example.myapplicationvkeducation.presentation.theme.MyApplicationVKEducationTheme
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -38,7 +40,7 @@ import androidx.lifecycle.repeatOnLifecycle
 @Composable
 fun AppsScreen(
     onAppClick: (Int) -> Unit = {},
-    viewModel: AppsViewModel = viewModel()
+    viewModel: AppsViewModel
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -145,7 +147,17 @@ private fun AppsToolbar(
 private fun AppsScreenPreview() {
     MyApplicationVKEducationTheme {
         AppsContent(
-            uiState = AppsUiState(apps = sampleApps)
+            uiState = AppsUiState(
+                apps = listOf(
+                    AppInfo(
+                        id = 1,
+                        name = "Заметки",
+                        description = "Сохраняйте идеи и составляйте списки дел",
+                        category = "Инструменты",
+                        iconKey = "notes"
+                    )
+                )
+            )
         )
     }
 }

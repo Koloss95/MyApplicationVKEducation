@@ -1,5 +1,7 @@
-package com.example.myapplicationvkeducation
+package com.example.myapplicationvkeducation.presentation.details
 
+import com.example.myapplicationvkeducation.presentation.util.appIconRes
+import com.example.myapplicationvkeducation.domain.model.AppInfo
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -31,7 +33,7 @@ fun AppDetailsHeader(
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Image(
-            painter = painterResource(app.iconRes),
+            painter = painterResource(appIconRes(app.iconKey)),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier

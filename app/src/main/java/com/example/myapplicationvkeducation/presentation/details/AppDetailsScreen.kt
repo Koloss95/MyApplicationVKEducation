@@ -1,81 +1,37 @@
-package com.example.myapplicationvkeducation
+package com.example.myapplicationvkeducation.presentation.details
 
+import android.content.Intent
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import androidx.navigation.toRoute
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import android.widget.Toast
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import android.content.Intent
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.myapplicationvkeducation.R
 
 @Composable
-fun RootNavHost() {
-    val navController = rememberNavController()
-
-    NavHost(
-        navController = navController,
-        startDestination = AppsDestination
-    ) {
-        composable<AppsDestination> {
-            AppsScreen(
-                onAppClick = { appId ->
-                    navController.navigate(
-                        AppDetailsDestination(appId = appId)
-                    ) {
-                        launchSingleTop = true
-                    }
-                }
-            )
-        }
-
-        composable<AppDetailsDestination> { backStackEntry ->
-            val destination =
-                backStackEntry.toRoute<AppDetailsDestination>()
-
-            AppDetailsPlaceholder(
-                appId = destination.appId,
-                onBackClick = {
-                    navController.popBackStack()
-                },
-                onShowcaseAppClick = { selectedAppId ->
-                    if (selectedAppId != destination.appId) {
-                        navController.navigate(
-                            AppDetailsDestination(appId = selectedAppId)
-                        )
-                    }
-                }
-            )
-        }
-    }
-}
-
-
-@Composable
-private fun AppDetailsPlaceholder(
+fun AppDetailsScreen(
     appId: Int,
+    viewModel: AppDetailsViewModel,
     onBackClick: () -> Unit,
     onShowcaseAppClick: (Int) -> Unit
 ) {
-    val app = findAppById(appId)
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val app = uiState.app
     val context = LocalContext.current
 
     var descriptionExpanded by rememberSaveable(appId) {
@@ -132,7 +88,7 @@ private fun AppDetailsPlaceholder(
                     modifier = Modifier.fillMaxWidth()
                 )
                 SimilarApps(
-                    apps = sampleApps.filter { it.id != app.id },
+                    apps = uiState.similarApps,
                     onDownloadClick = { selectedApp ->
                         Toast.makeText(
                             context,
@@ -185,7 +141,7 @@ private fun AppDetailsPlaceholder(
             }
 
             Showcase(
-                apps = sampleApps,
+                apps = uiState.showcaseApps,
                 onAppClick = onShowcaseAppClick
             )
         }
