@@ -2,6 +2,7 @@ package com.example.myapplicationvkeducation.presentation.catalog
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,6 +23,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.myapplicationvkeducation.presentation.components.AppCard
+import com.example.myapplicationvkeducation.presentation.components.LoadingState
+import com.example.myapplicationvkeducation.presentation.components.RetryMessage
 import com.example.myapplicationvkeducation.R
 import com.example.myapplicationvkeducation.domain.model.AppInfo
 import com.example.myapplicationvkeducation.presentation.theme.MyApplicationVKEducationTheme
@@ -39,7 +42,7 @@ import androidx.lifecycle.repeatOnLifecycle
 
 @Composable
 fun AppsScreen(
-    onAppClick: (Int) -> Unit = {},
+    onAppClick: (String) -> Unit = {},
     viewModel: AppsViewModel
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -66,6 +69,7 @@ fun AppsScreen(
     AppsContent(
         uiState = uiState,
         onAppClick = onAppClick,
+        onRetry = viewModel::retry,
         onLogoClick = viewModel::onLogoClick,
         snackbarHostState = snackbarHostState
     )
@@ -74,7 +78,8 @@ fun AppsScreen(
 @Composable
 private fun AppsContent(
     uiState: AppsUiState,
-    onAppClick: (Int) -> Unit = {},
+    onAppClick: (String) -> Unit = {},
+    onRetry: () -> Unit = {},
     onLogoClick: () -> Unit = {},
     snackbarHostState: SnackbarHostState = remember {
         SnackbarHostState()
@@ -89,21 +94,34 @@ private fun AppsContent(
             SnackbarHost(hostState = snackbarHostState)
         }
     ) { innerPadding ->
-        LazyColumn(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            contentAlignment = Alignment.Center
         ) {
-            items(
-                items = uiState.apps,
-                key = { app -> app.id }
-            ) { app ->
-                AppCard(
-                    app = app,
-                    onClick = { onAppClick(app.id) }
+            when {
+                uiState.isLoading -> LoadingState("Загружаем каталог…")
+                uiState.errorMessage != null -> RetryMessage(
+                    message = uiState.errorMessage,
+                    onRetry = onRetry
                 )
+                uiState.apps.isEmpty() -> Text("В каталоге пока нет приложений")
+                else -> LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(
+                        items = uiState.apps,
+                        key = { app -> app.id }
+                    ) { app ->
+                        AppCard(
+                            app = app,
+                            onClick = { onAppClick(app.id) }
+                        )
+                    }
+                }
             }
         }
     }
@@ -150,11 +168,11 @@ private fun AppsScreenPreview() {
             uiState = AppsUiState(
                 apps = listOf(
                     AppInfo(
-                        id = 1,
+                        id = "preview-notes",
                         name = "Заметки",
                         description = "Сохраняйте идеи и составляйте списки дел",
                         category = "Инструменты",
-                        iconKey = "notes"
+                        iconUrl = ""
                     )
                 )
             )

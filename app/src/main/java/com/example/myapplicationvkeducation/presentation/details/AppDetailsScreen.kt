@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
@@ -21,17 +22,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.myapplicationvkeducation.R
+import com.example.myapplicationvkeducation.presentation.components.LoadingState
+import com.example.myapplicationvkeducation.presentation.components.RetryMessage
 
 @Composable
 fun AppDetailsScreen(
-    appId: Int,
+    appId: String,
     viewModel: AppDetailsViewModel,
     onBackClick: () -> Unit,
-    onShowcaseAppClick: (Int) -> Unit
+    onShowcaseAppClick: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val app = uiState.app
+    val errorMessage = uiState.errorMessage
+    val recommendationsError = uiState.recommendationsError
     val context = LocalContext.current
 
     var descriptionExpanded by rememberSaveable(appId) {
@@ -39,16 +43,8 @@ fun AppDetailsScreen(
     }
 
     Scaffold(
-        modifier = Modifier.fillMaxSize()
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
+        modifier = Modifier.fillMaxSize(),
+        topBar = {
             AppDetailsToolbar(
                 onBackClick = onBackClick,
                 onShareClick = {
@@ -62,88 +58,98 @@ fun AppDetailsScreen(
                         }
 
                         context.startActivity(
-                            Intent.createChooser(
-                                shareIntent,
-                                "Поделиться приложением"
-                            )
+                            Intent.createChooser(shareIntent, "Поделиться приложением")
                         )
                     }
-                }
+                },
+                shareEnabled = app != null && !uiState.isLoading && errorMessage == null,
+                modifier = Modifier.statusBarsPadding().padding(horizontal = 16.dp)
             )
-            if (app != null) {
-                AppDetailsHeader(
-                    app = app,
-                    developer = "Учебная студия",
-                    ageRating = 3,
-                    sizeMb = 25
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            when {
+                uiState.isLoading -> LoadingState("Загружаем приложение…")
+                errorMessage != null -> RetryMessage(
+                    message = errorMessage,
+                    onRetry = viewModel::retry
                 )
-                InstallButton(
-                    onClick = {
-                        Toast.makeText(
-                            context,
-                            "Это учебный каталог: установка не выполняется",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                SimilarApps(
-                    apps = uiState.similarApps,
-                    onDownloadClick = { selectedApp ->
-                        Toast.makeText(
-                            context,
-                            "Учебный каталог: скачивание «${selectedApp.name}» не выполняется",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                ScreenshotsList(
-                    screenshots = listOf(
-                        R.drawable.screenshot_1,
-                        R.drawable.screenshot_2,
-                        R.drawable.screenshot_3
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                )
+                app == null -> Text("Приложение не найдено")
+                else -> {
+                    AppDetailsHeader(app = app)
 
-                AppDescription(
-                    description = """
-        ${app.description}
+                    InstallButton(
+                        onClick = {
+                            Toast.makeText(
+                                context,
+                                "Это учебный каталог: установка не выполняется",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
 
-        ${app.name} — приложение из нашего учебного каталога.
-        Категория: ${app.category}.
+                    ScreenshotsList(
+                        screenshots = app.screenshotUrls,
+                        modifier = Modifier.fillMaxWidth()
+                    )
 
-        Здесь приведено демонстрационное описание. В настоящем
-        каталоге этот раздел рассказывает о возможностях
-        приложения, его особенностях и способах использования.
-    """.trimIndent(),
-                    expanded = descriptionExpanded,
-                    onToggleClick = {
-                        descriptionExpanded = !descriptionExpanded
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                HorizontalDivider()
+                    AppDescription(
+                        description = app.description,
+                        expanded = descriptionExpanded,
+                        onToggleClick = { descriptionExpanded = !descriptionExpanded },
+                        modifier = Modifier.fillMaxWidth()
+                    )
 
-                Developer(
-                    name = "Учебная студия",
-                    onClick = {
-                        Toast.makeText(
-                            context,
-                            "Разработчик приложений учебного каталога",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                    app.developer?.takeIf { it.isNotBlank() }?.let { developer ->
+                        HorizontalDivider()
+                        Developer(
+                            name = developer,
+                            onClick = {
+                                Toast.makeText(
+                                    context,
+                                    "Разработчик: $developer",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        )
                     }
-                )
-            } else {
-                Text(text = "Приложение не найдено")
-            }
 
-            Showcase(
-                apps = uiState.showcaseApps,
-                onAppClick = onShowcaseAppClick
-            )
+                    when {
+                        uiState.isRecommendationsLoading ->
+                            LoadingState("Загружаем рекомендации…")
+                        recommendationsError != null -> RetryMessage(
+                            message = recommendationsError,
+                            onRetry = viewModel::retryRecommendations
+                        )
+                        else -> {
+                            SimilarApps(
+                                apps = uiState.similarApps,
+                                onDownloadClick = { selectedApp ->
+                                    Toast.makeText(
+                                        context,
+                                        "Учебный каталог: скачивание «${selectedApp.name}» не выполняется",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                },
+                                modifier = Modifier.fillMaxWidth()
+                            )
+
+                            Showcase(
+                                apps = uiState.showcaseApps,
+                                onAppClick = onShowcaseAppClick
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }

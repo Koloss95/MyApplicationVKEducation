@@ -3,8 +3,6 @@ package com.example.myapplicationvkeducation.domain.repository
 import com.example.myapplicationvkeducation.domain.model.AppInfo
 
 interface AppsRepository {
-
-    fun getApps(): List<AppInfo>
-
-    fun getAppById(appId: Int): AppInfo?
+    suspend fun getApps(): List<AppInfo>
+    suspend fun getAppById(appId: String): AppInfo?
 }

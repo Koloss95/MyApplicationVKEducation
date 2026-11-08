@@ -1,32 +1,27 @@
 package com.example.myapplicationvkeducation.presentation.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import com.example.myapplicationvkeducation.domain.repository.AppsRepository
 import com.example.myapplicationvkeducation.presentation.catalog.AppsScreen
 import com.example.myapplicationvkeducation.presentation.catalog.AppsViewModel
 import com.example.myapplicationvkeducation.presentation.details.AppDetailsScreen
 import com.example.myapplicationvkeducation.presentation.details.AppDetailsViewModel
 
 @Composable
-fun RootNavHost(
-    appsRepository: AppsRepository
-) {
+fun RootNavHost() {
     val navController = rememberNavController()
 
     NavHost(
         navController = navController,
         startDestination = AppsDestination
     ) {
-        composable<AppsDestination> {
-            val appsViewModel: AppsViewModel = viewModel(
-                factory = AppsViewModel.factory(
-                    repository = appsRepository
-                )
+        composable<AppsDestination> { backStackEntry ->
+            val appsViewModel: AppsViewModel = hiltViewModel(
+                viewModelStoreOwner = backStackEntry
             )
 
             AppsScreen(
@@ -45,11 +40,8 @@ fun RootNavHost(
             val destination =
                 backStackEntry.toRoute<AppDetailsDestination>()
 
-            val detailsViewModel: AppDetailsViewModel = viewModel(
-                factory = AppDetailsViewModel.factory(
-                    appId = destination.appId,
-                    repository = appsRepository
-                )
+            val detailsViewModel: AppDetailsViewModel = hiltViewModel(
+                viewModelStoreOwner = backStackEntry
             )
 
             AppDetailsScreen(

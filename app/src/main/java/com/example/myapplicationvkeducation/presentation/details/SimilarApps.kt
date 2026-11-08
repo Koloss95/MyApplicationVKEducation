@@ -1,8 +1,7 @@
 package com.example.myapplicationvkeducation.presentation.details
 
-import com.example.myapplicationvkeducation.presentation.util.appIconRes
+import com.example.myapplicationvkeducation.presentation.components.AppIcon
 import com.example.myapplicationvkeducation.domain.model.AppInfo
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,8 +17,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
@@ -29,6 +26,8 @@ fun SimilarApps(
     onDownloadClick: (AppInfo) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    if (apps.isEmpty()) return
+
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -65,10 +64,8 @@ private fun SimilarAppItem(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        Image(
-            painter = painterResource(appIconRes(app.iconKey)),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
+        AppIcon(
+            iconUrl = app.iconUrl,
             modifier = Modifier
                 .size(128.dp)
                 .clip(RoundedCornerShape(16.dp))
