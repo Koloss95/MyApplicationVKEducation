@@ -1,26 +1,18 @@
 package com.example.myapplicationvkeducation.data.repository
 
 import com.example.myapplicationvkeducation.data.mapper.AppMapper
-import com.example.myapplicationvkeducation.data.source.LocalAppsDataSource
+import com.example.myapplicationvkeducation.data.source.RemoteAppsDataSource
 import com.example.myapplicationvkeducation.domain.model.AppInfo
 import com.example.myapplicationvkeducation.domain.repository.AppsRepository
+import javax.inject.Inject
 
-class AppsRepositoryImpl(
-    private val dataSource: LocalAppsDataSource,
+class AppsRepositoryImpl @Inject constructor(
+    private val dataSource: RemoteAppsDataSource,
     private val mapper: AppMapper
 ) : AppsRepository {
+    override suspend fun getApps(): List<AppInfo> =
+        dataSource.getApps().map { mapper.toDomain(it) }
 
-    override fun getApps(): List<AppInfo> {
-        return dataSource.getApps().map { dto ->
-            mapper.toDomain(dto)
-        }
-    }
-
-    override fun getAppById(appId: Int): AppInfo? {
-        val dto = dataSource.getApps().find { app ->
-            app.id == appId
-        } ?: return null
-
-        return mapper.toDomain(dto)
-    }
+    override suspend fun getAppById(appId: String): AppInfo? =
+        dataSource.getAppById(appId)?.let { mapper.toDomain(it) }
 }

@@ -6,6 +6,4 @@ import kotlinx.serialization.Serializable
 data object AppsDestination
 
 @Serializable
-data class AppDetailsDestination(
-    val appId: Int
-)
+data class AppDetailsDestination(val appId: String)

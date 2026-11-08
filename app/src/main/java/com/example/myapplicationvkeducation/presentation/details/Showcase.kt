@@ -17,13 +17,10 @@ import com.example.myapplicationvkeducation.presentation.components.AppCard
 @Composable
 fun Showcase(
     apps: List<AppInfo>,
-    onAppClick: (Int) -> Unit,
+    onAppClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    require(apps.size == 9) {
-        "Для витрины необходимо передать ровно 9 приложений"
-    }
-
+    if (apps.isEmpty()) return
 
     val pages = apps.chunked(3)
 
@@ -50,7 +47,7 @@ fun Showcase(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                for (app in pages[pageIndex]) {
+                for (app in pages.getOrNull(pageIndex).orEmpty()) {
                     AppCard(
                         app = app,
                         onClick = { onAppClick(app.id) }

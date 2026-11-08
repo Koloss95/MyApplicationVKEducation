@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 fun AppDetailsToolbar(
     onBackClick: () -> Unit,
     onShareClick: () -> Unit,
+    shareEnabled: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -30,7 +31,7 @@ fun AppDetailsToolbar(
             )
         }
 
-        IconButton(onClick = onShareClick) {
+        IconButton(onClick = onShareClick, enabled = shareEnabled) {
             Icon(
                 imageVector = Icons.Default.Share,
                 contentDescription = "Поделиться",

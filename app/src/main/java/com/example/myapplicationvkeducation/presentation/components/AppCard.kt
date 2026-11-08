@@ -1,6 +1,5 @@
 package com.example.myapplicationvkeducation.presentation.components
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -16,18 +15,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.myapplicationvkeducation.domain.model.AppInfo
-import com.example.myapplicationvkeducation.presentation.util.appIconRes
 import com.example.myapplicationvkeducation.presentation.theme.MyApplicationVKEducationTheme
 
 @Composable
 fun AppCard(
     app: AppInfo,
-    modifier: Modifier = Modifier.Companion,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit = {}
 ) {
     Card(
@@ -39,10 +36,8 @@ fun AppCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Image(
-                painter = painterResource(appIconRes(app.iconKey)),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
+            AppIcon(
+                iconUrl = app.iconUrl,
                 modifier = Modifier.size(64.dp)
                     .clip(RoundedCornerShape(12.dp))
 
@@ -53,12 +48,16 @@ fun AppCard(
             ) {
                 Text(
                     text = app.name,
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
 
                 Text(
                     text = app.description,
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
 
                 Text(
@@ -77,11 +76,11 @@ private fun AppCardPreview() {
     MyApplicationVKEducationTheme {
         AppCard(
             app = AppInfo(
-                id = 1,
+                id = "preview-notes",
                 name = "Заметки",
                 description = "Сохраняйте идеи и составляйте списки дел",
                 category = "Инструменты",
-                iconKey = "notes"
+                iconUrl = ""
             ),
             modifier = Modifier.padding(16.dp)
         )
