@@ -1,4 +1,4 @@
-package com.example.myapplicationvkeducation.ui.theme
+package com.example.myapplicationvkeducation.presentation.theme
 
 import androidx.compose.ui.graphics.Color
 
