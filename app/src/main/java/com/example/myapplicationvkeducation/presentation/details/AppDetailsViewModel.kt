@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 
 @HiltViewModel
 class AppDetailsViewModel @Inject constructor(
@@ -28,8 +29,57 @@ class AppDetailsViewModel @Inject constructor(
     private var loadJob: Job? = null
     private var recommendationsJob: Job? = null
 
+    private var installJob: Job? = null
+
     init {
         retry()
+    }
+
+    fun onInstallClick() {
+        val state = _uiState.value
+
+        if (state.app == null || state.isLoading || state.errorMessage != null){
+            return
+        }
+
+        when (state.installState){
+            InstallState.NotInstalled -> {
+                _uiState.update {
+                    it.copy(installState = InstallState.Installing(progress = 0))
+                }
+
+                installJob = viewModelScope.launch {
+                    emulateInstall()
+                }
+            }
+
+            is InstallState.Installing -> {
+                installJob?.cancel()
+                installJob = null
+
+                _uiState.update {
+                    it.copy(installState = InstallState.NotInstalled)
+                }
+            }
+
+            InstallState.Installed -> Unit
+        }
+    }
+
+    private suspend fun emulateInstall() {
+        for (progress in 5..100 step 5) {
+            delay(150)
+
+            _uiState.update {
+                it.copy(
+                    installState = InstallState.Installing(progress = progress)
+                )
+            }
+        }
+
+        _uiState.update {
+            it.copy(installState = InstallState.Installed)
+        }
     }
 
     fun retry() {

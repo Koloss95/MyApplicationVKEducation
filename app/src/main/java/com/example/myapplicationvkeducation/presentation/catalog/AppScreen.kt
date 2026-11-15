@@ -38,6 +38,8 @@ import androidx.compose.runtime.remember
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.compose.foundation.layout.Column
+import androidx.compose.material3.Button
 
 
 @Composable
@@ -71,6 +73,8 @@ fun AppsScreen(
         onAppClick = onAppClick,
         onRetry = viewModel::retry,
         onLogoClick = viewModel::onLogoClick,
+        onLoadRatingsSequentially = viewModel::loadRatingsSequentially,
+        onLoadRatingsInParallel = viewModel::loadRatingsInParallel,
         snackbarHostState = snackbarHostState
     )
 }
@@ -81,6 +85,8 @@ private fun AppsContent(
     onAppClick: (String) -> Unit = {},
     onRetry: () -> Unit = {},
     onLogoClick: () -> Unit = {},
+    onLoadRatingsSequentially: () -> Unit = {},
+    onLoadRatingsInParallel: () -> Unit = {},
     snackbarHostState: SnackbarHostState = remember {
         SnackbarHostState()
     }
@@ -112,12 +118,60 @@ private fun AppsContent(
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
+                    item {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = "Рейтинги для ${uiState.apps.size} приложений",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+
+                            Button(
+                                onClick = onLoadRatingsSequentially,
+                                enabled = !uiState.isRatingsLoading,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text("Загрузить последовательно")
+                            }
+
+                            Button(
+                                onClick = onLoadRatingsInParallel,
+                                enabled = !uiState.isRatingsLoading,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text("Загрузить параллельно")
+                            }
+
+                            if (uiState.isRatingsLoading) {
+                                Text("Загружаем рейтинги…")
+                            }
+
+                            uiState.ratingsError?.let { message ->
+                                Text(
+                                    text = message,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
+
+                            uiState.sequentialTimeMs?.let { time ->
+                                Text("Последовательно: $time мс")
+                            }
+
+                            uiState.parallelTimeMs?.let { time ->
+                                Text("Параллельно: $time мс")
+                            }
+                        }
+                    }
+
                     items(
                         items = uiState.apps,
                         key = { app -> app.id }
                     ) { app ->
                         AppCard(
                             app = app,
+                            rating = uiState.ratings[app.id],
                             onClick = { onAppClick(app.id) }
                         )
                     }

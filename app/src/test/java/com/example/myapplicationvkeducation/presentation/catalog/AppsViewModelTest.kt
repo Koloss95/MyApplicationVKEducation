@@ -99,6 +99,16 @@ class AppsViewModelTest {
 
             override suspend fun getAppById(appId: String): AppInfo? =
                 error("Catalog ViewModel must not request app details")
+
+            override suspend fun loadRatingsSequentially(
+                ids: List<String>
+            ): Map<String, Float> =
+                error("Загрузка рейтингов не ожидается в этом тесте")
+
+            override suspend fun loadRatingsInParallel(
+                ids: List<String>
+            ): Map<String, Float> =
+                error("Загрузка рейтингов не ожидается в этом тесте")
         }
         return AppsViewModel(repository).also { store.put("catalog", it) }
     }

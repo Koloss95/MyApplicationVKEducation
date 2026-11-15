@@ -13,6 +13,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.update
+import kotlin.system.measureTimeMillis
 
 @HiltViewModel
 class AppsViewModel @Inject constructor(
@@ -26,12 +28,18 @@ class AppsViewModel @Inject constructor(
 
     private var loadJob: Job? = null
 
+    private var ratingsJob: Job? = null
+
     init {
         retry()
     }
 
     fun retry() {
         if (loadJob?.isActive == true) return
+
+        ratingsJob?.cancel()
+        ratingsJob = null
+
         loadJob = viewModelScope.launch {
             _uiState.value = AppsUiState(isLoading = true)
             try {
@@ -46,6 +54,74 @@ class AppsViewModel @Inject constructor(
         }
     }
 
+    fun loadRatingsSequentially() {
+        loadRatings(inParallel = false)
+    }
+
+    fun loadRatingsInParallel() {
+        loadRatings(inParallel = true)
+    }
+
+    private fun loadRatings(inParallel: Boolean) {
+        val state = _uiState.value
+
+        if (
+            state.isLoading ||
+            state.apps.isEmpty() ||
+            ratingsJob?.isActive == true
+        ) {
+            return
+        }
+
+        val ids = state.apps.map { it.id }
+
+        ratingsJob = viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    isRatingsLoading = true,
+                    ratingsError = null
+                )
+            }
+
+            try {
+                var ratings: Map<String, Float> = emptyMap()
+
+                val elapsedMs = measureTimeMillis {
+                    ratings = if (inParallel) {
+                        repository.loadRatingsInParallel(ids)
+                    } else {
+                        repository.loadRatingsSequentially(ids)
+                    }
+                }
+
+                _uiState.update {
+                    it.copy(
+                        ratings = ratings,
+                        isRatingsLoading = false,
+                        sequentialTimeMs = if (!inParallel) {
+                            elapsedMs
+                        } else {
+                            it.sequentialTimeMs
+                        },
+                        parallelTimeMs = if (inParallel) {
+                            elapsedMs
+                        } else {
+                            it.parallelTimeMs
+                        }
+                    )
+                }
+            } catch (exception: CancellationException) {
+                throw exception
+            } catch (_: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isRatingsLoading = false,
+                        ratingsError = "Не удалось загрузить рейтинги. Попробуйте ещё раз."
+                    )
+                }
+            }
+        }
+    }
     fun onLogoClick() {
         viewModelScope.launch {
             _events.send(

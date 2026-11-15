@@ -86,13 +86,8 @@ fun AppDetailsScreen(
                     AppDetailsHeader(app = app)
 
                     InstallButton(
-                        onClick = {
-                            Toast.makeText(
-                                context,
-                                "Это учебный каталог: установка не выполняется",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        },
+                        installState = uiState.installState,
+                        onClick = viewModel::onInstallClick,
                         modifier = Modifier.fillMaxWidth()
                     )
 

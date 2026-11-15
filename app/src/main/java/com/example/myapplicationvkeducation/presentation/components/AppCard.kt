@@ -25,6 +25,7 @@ import com.example.myapplicationvkeducation.presentation.theme.MyApplicationVKEd
 fun AppCard(
     app: AppInfo,
     modifier: Modifier = Modifier,
+    rating: Float? = null,
     onClick: () -> Unit = {}
 ) {
     Card(
@@ -52,6 +53,14 @@ fun AppCard(
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
+
+                rating?.let { value ->
+                    Text(
+                        text = "★ $value",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
 
                 Text(
                     text = app.description,

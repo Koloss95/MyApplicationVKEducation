@@ -15,6 +15,7 @@ import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 import retrofit2.HttpException
+import com.example.myapplicationvkeducation.data.source.FakeRatingsDataSource
 
 class NetworkAppsRepositoryTest {
     private lateinit var server: MockWebServer
@@ -33,7 +34,8 @@ class NetworkAppsRepositoryTest {
             .build()
         repository = AppsRepositoryImpl(
             RemoteAppsDataSource(NetworkModule.provideCatalogApi(retrofit)),
-            AppMapper()
+            AppMapper(),
+            FakeRatingsDataSource()
         )
     }
 

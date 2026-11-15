@@ -9,5 +9,6 @@ data class AppDetailsUiState(
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
     val isRecommendationsLoading: Boolean = false,
-    val recommendationsError: String? = null
+    val recommendationsError: String? = null,
+    val installState: InstallState = InstallState.NotInstalled
 )
